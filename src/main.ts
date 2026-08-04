@@ -1,30 +1,37 @@
-import { Graphics } from "pixi.js";
+import { Assets, Sprite } from "pixi.js";
 import { createApp } from "./core/app";
 
 (async () => {
   const app = await createApp();
 
-  // Пришиваем канвас Pixi в div из index.html.
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-  // Плейсхолдер — заменим на настоящую сцену слота в этапе 2.
-  // v8-API рисования: сначала описываем форму (rect/circle/roundRect/...),
-  // потом накладываем стиль (fill/stroke). Каждый вызов возвращает this — можно чейнить.
-  // Координаты формы — от локального (0,0) объекта Graphics. Рисуем от -60 до +60,
-  // чтобы центр формы совпал с origin — тогда `rotation` крутит вокруг центра.
-  const box = new Graphics()
-    .roundRect(-60, -60, 120, 120, 5)
-    .fill("crimson")
-    .stroke({ width: 1, color: "yellow " });
+  // Загружаем атлас. Assets.load парсит symbols.json, догружает symbols.png,
+  // регистрирует все фреймы в глобальном кеше текстур под их именами
+  // ("wild-kraken", "high-galleon", ...). Дальше можно доставать по имени
+  // из любого места приложения без повторной загрузки.
+  await Assets.load("/atlas/symbols.json");
 
-  // Origin объекта Graphics ставим в центр экрана.
-  box.position.set(app.screen.width / 2, app.screen.height / 2);
+  // Sprite.from(name) ищет текстуру по имени в кеше — синхронно, потому что
+  // атлас уже загружен. Ошибка бы вылезла, если бы имени в JSON не было.
+  const kraken = Sprite.from("wild-kraken");
 
-  // Добавляем в сцену.
-  app.stage.addChild(box);
+  // Иконка на исходнике 256×256 — масштабируем до отображаемого размера.
+  kraken.width = 200;
+  kraken.height = 200;
 
-  // Крутим в ticker'е. deltaTime — множитель для FPS-независимой анимации.
+  // Anchor в центр — position.set() ставит центр спрайта в точку, rotation крутит вокруг центра.
+  kraken.anchor.set(0.5);
+  kraken.position.set(app.screen.width / 2, app.screen.height / 2);
+
+  // tint мультиплицирует пиксели текстуры на цвет. Исходник — белый на прозрачном,
+  // умножение на золото даёт золотой символ. Это ключ к переиспользованию атласа:
+  // одна текстура + разные tint = разные визуальные состояния.
+  kraken.tint = 0xffd700;
+
+  app.stage.addChild(kraken);
+
   app.ticker.add((time) => {
-    box.rotation += 0.02 * time.deltaTime;
+    kraken.rotation += 0.01 * time.deltaTime;
   });
 })();
