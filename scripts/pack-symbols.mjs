@@ -101,17 +101,21 @@ async function main() {
     JSON.stringify(manifest, null, 2) + "\n",
   );
 
-  // Типизированный список имён — чтобы Sprite.from(name) в приложении
-  // получал автодополнение и падал компиляцией на опечатке. Пересобирается
-  // тем же скриптом — рассинхронизация с атласом невозможна.
-  const symbolLines = tiles.map((t) => `  "${t.name}",`).join("\n");
+  // Типизированный словарь имён: UPPER_CASE ключ → строка-фрейм.
+  // Автодополнение при наборе `SYMBOLS.` + SymbolName-union для функций,
+  // принимающих имена. Пересобирается тем же скриптом — рассинхронизация
+  // с атласом невозможна.
+  const toKey = (name) => name.toUpperCase().replace(/-/g, "_");
+  const symbolLines = tiles
+    .map((t) => `  ${toKey(t.name)}: "${t.name}",`)
+    .join("\n");
   const tsContents =
     `// AUTO-GENERATED — не редактируй руками.\n` +
     `// Регенерируется через \`npm run pack-symbols\`.\n` +
     `\n` +
-    `export const SYMBOLS = [\n${symbolLines}\n] as const;\n` +
+    `export const SYMBOLS = {\n${symbolLines}\n} as const;\n` +
     `\n` +
-    `export type SymbolName = (typeof SYMBOLS)[number];\n`;
+    `export type SymbolName = (typeof SYMBOLS)[keyof typeof SYMBOLS];\n`;
 
   await fs.mkdir(path.dirname(OUT_TS), { recursive: true });
   await fs.writeFile(OUT_TS, tsContents);
