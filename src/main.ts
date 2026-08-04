@@ -13,9 +13,9 @@ import { createApp } from "./core/app";
   // Координаты формы — от локального (0,0) объекта Graphics. Рисуем от -60 до +60,
   // чтобы центр формы совпал с origin — тогда `rotation` крутит вокруг центра.
   const box = new Graphics()
-    .roundRect(-60, -60, 120, 120, 12)
-    .fill(0xffbf00)
-    .stroke({ width: 4, color: 0x2c1a00 });
+    .roundRect(-60, -60, 120, 120, 5)
+    .fill("crimson")
+    .stroke({ width: 1, color: "yellow " });
 
   // Origin объекта Graphics ставим в центр экрана.
   box.position.set(app.screen.width / 2, app.screen.height / 2);
