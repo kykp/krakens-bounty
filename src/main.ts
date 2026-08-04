@@ -1,5 +1,6 @@
 import { Assets, Sprite } from "pixi.js";
 import { createApp } from "./core/app";
+import { type SymbolName } from "./assets/generated/symbols";
 
 (async () => {
   const app = await createApp();
@@ -13,12 +14,13 @@ import { createApp } from "./core/app";
   await Assets.load("/atlas/symbols.json");
 
   // Sprite.from(name) ищет текстуру по имени в кеше — синхронно, потому что
-  // атлас уже загружен. Ошибка бы вылезла, если бы имени в JSON не было.
-  const kraken = Sprite.from("wild-kraken");
+  // атлас уже загружен. `satisfies SymbolName` — компилятор проверит, что
+  // литерал есть в сгенерированном списке имён; опечатка ловится на этапе tsc.
+  const kraken = Sprite.from("wild-kraken" satisfies SymbolName);
 
   // Иконка на исходнике 256×256 — масштабируем до отображаемого размера.
-  kraken.width = 200;
-  kraken.height = 200;
+  kraken.width = 100;
+  kraken.height = 100;
 
   // Anchor в центр — position.set() ставит центр спрайта в точку, rotation крутит вокруг центра.
   kraken.anchor.set(0.5);
@@ -27,7 +29,7 @@ import { createApp } from "./core/app";
   // tint мультиплицирует пиксели текстуры на цвет. Исходник — белый на прозрачном,
   // умножение на золото даёт золотой символ. Это ключ к переиспользованию атласа:
   // одна текстура + разные tint = разные визуальные состояния.
-  kraken.tint = 0xffd700;
+  kraken.tint = "black";
 
   app.stage.addChild(kraken);
 

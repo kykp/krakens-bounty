@@ -16,6 +16,8 @@ const SRC_DIR = path.join(ROOT, "src/assets/raw/game-icons");
 const OUT_DIR = path.join(ROOT, "public/atlas");
 const OUT_PNG = "symbols.png";
 const OUT_JSON = "symbols.json";
+// TS-манифест с именами символов — типизированный источник для кода.
+const OUT_TS = path.join(ROOT, "src/assets/generated/symbols.ts");
 
 // Целевой размер одного символа в атласе. 256px даёт хороший запас под retina
 // (реальный отображаемый — обычно 100–160px).
@@ -99,10 +101,26 @@ async function main() {
     JSON.stringify(manifest, null, 2) + "\n",
   );
 
+  // Типизированный список имён — чтобы Sprite.from(name) в приложении
+  // получал автодополнение и падал компиляцией на опечатке. Пересобирается
+  // тем же скриптом — рассинхронизация с атласом невозможна.
+  const symbolLines = tiles.map((t) => `  "${t.name}",`).join("\n");
+  const tsContents =
+    `// AUTO-GENERATED — не редактируй руками.\n` +
+    `// Регенерируется через \`npm run pack-symbols\`.\n` +
+    `\n` +
+    `export const SYMBOLS = [\n${symbolLines}\n] as const;\n` +
+    `\n` +
+    `export type SymbolName = (typeof SYMBOLS)[number];\n`;
+
+  await fs.mkdir(path.dirname(OUT_TS), { recursive: true });
+  await fs.writeFile(OUT_TS, tsContents);
+
   console.log(
     `✓ Атлас: ${atlasW}×${atlasH}, ${tiles.length} символов → ${path.relative(ROOT, path.join(OUT_DIR, OUT_PNG))}`,
   );
   console.log(`✓ Манифест: ${path.relative(ROOT, path.join(OUT_DIR, OUT_JSON))}`);
+  console.log(`✓ TS-типы:  ${path.relative(ROOT, OUT_TS)}`);
 }
 
 main().catch((err) => {
