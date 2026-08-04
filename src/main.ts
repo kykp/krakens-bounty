@@ -10,8 +10,11 @@ import { DESIGN_WIDTH, DESIGN_HEIGHT } from "./config/screen";
   if (!container) return;
 
   container.appendChild(app.canvas);
+
+  //preloader загрузки Assets
   await bootstrap(app);
 
+  //создается игровая область
   const gameRoot = createGameRoot(app);
 
   // Временный маркер границ дизайн-области — удалим в 2.1.2 (после resize).
