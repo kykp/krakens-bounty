@@ -1,11 +1,9 @@
-import { Application, Assets, Sprite } from "pixi.js";
+import { Assets, Sprite } from "pixi.js";
+import { createApp } from "./core/app";
 
 (async () => {
-  // Создаём приложение. В v8 конструктор синхронный — тяжёлая инициализация (WebGPU/WebGL контекст) вынесена в init().
-  const app = new Application();
-
-  // Инициализируем рендерер. resizeTo: window — канвас сам подстраивается под размер окна.
-  await app.init({ background: "#1b8fac", resizeTo: window });
+  // Application-настройки живут в core/app.ts, тут только сборка сцены.
+  const app = await createApp();
 
   // Пришиваем канвас Pixi в div из index.html.
   document.getElementById("pixi-container")!.appendChild(app.canvas);
