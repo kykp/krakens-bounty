@@ -1,14 +1,18 @@
 import { Assets, Sprite } from "pixi.js";
 import { createApp } from "./core/app";
 import { SYMBOLS } from "./assets/generated/symbols";
+import { ASSETS_MANIFEST } from "./assets/manifest";
 
 (async () => {
   const app = await createApp();
 
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-  // Загружаем атлас. После этого все символы доступны в кеше по имени.
-  await Assets.load("/atlas/symbols.json");
+  // Регистрируем весь manifest — Pixi запоминает, какие бандлы и алиасы существуют,
+  // но ничего ещё не грузит.
+  await Assets.init({ manifest: ASSETS_MANIFEST });
+  // Грузим bundle "boot" — фактическая загрузка атласа + регистрация фреймов в кеше.
+  await Assets.loadBundle("boot");
 
   const kraken = Sprite.from(SYMBOLS.WILD_KRAKEN);
   // anchor в центр — иначе rotation крутит вокруг левого верхнего угла.
