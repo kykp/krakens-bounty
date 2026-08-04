@@ -1,32 +1,30 @@
-import { Assets, Sprite } from "pixi.js";
+import { Graphics } from "pixi.js";
 import { createApp } from "./core/app";
 
 (async () => {
-  // Application-настройки живут в core/app.ts, тут только сборка сцены.
   const app = await createApp();
 
   // Пришиваем канвас Pixi в div из index.html.
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-  // Загружаем текстуру. Assets — кеширующий загрузчик v8, повторный load вернёт ту же текстуру.
-  const texture = await Assets.load("/assets/bunny.png");
+  // Плейсхолдер — заменим на настоящую сцену слота в этапе 2.
+  // v8-API рисования: сначала описываем форму (rect/circle/roundRect/...),
+  // потом накладываем стиль (fill/stroke). Каждый вызов возвращает this — можно чейнить.
+  // Координаты формы — от локального (0,0) объекта Graphics. Рисуем от -60 до +60,
+  // чтобы центр формы совпал с origin — тогда `rotation` крутит вокруг центра.
+  const box = new Graphics()
+    .roundRect(-60, -60, 120, 120, 12)
+    .fill(0xffbf00)
+    .stroke({ width: 4, color: 0x2c1a00 });
 
-  // Спрайт из текстуры.
-  const bunny = new Sprite(texture);
-
-  // Ставим точку привязки в центр — иначе поворот будет крутить вокруг левого верхнего угла.
-  bunny.anchor.set(0.5);
-
-  // Центрируем спрайт по экрану.
-  bunny.position.set(app.screen.width / 2, app.screen.height / 2);
+  // Origin объекта Graphics ставим в центр экрана.
+  box.position.set(app.screen.width / 2, app.screen.height / 2);
 
   // Добавляем в сцену.
-  app.stage.addChild(bunny);
+  app.stage.addChild(box);
 
-  // Крутим кролика в ticker'е.
+  // Крутим в ticker'е. deltaTime — множитель для FPS-независимой анимации.
   app.ticker.add((time) => {
-    // time.deltaTime — безразмерный множитель: 1.0 при 60 FPS, 2.0 если кадр пропущен.
-    // Умножая на него, получаем анимацию, независимую от FPS.
-    bunny.rotation += 0.1 * time.deltaTime;
+    box.rotation += 0.02 * time.deltaTime;
   });
 })();
